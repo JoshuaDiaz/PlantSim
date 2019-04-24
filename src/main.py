@@ -11,7 +11,7 @@ from plant import Plant
 from plant_utilities import *
 
 # Simulation parameters
-SCREEN_SIZE = 500,500
+SCREEN_SIZE = 500,300
 SUN_POS = 125,125
 WATER_POS = 300,100
 STEP_TIME = 0.25 # time between updates 
@@ -35,8 +35,8 @@ screen = pygame.display.set_mode((SCREEN_SIZE))
 #plant2 = pygame.image.load("../plant_pygame2.bmp")
 
 # define plant preferences
-plant_1_pref = {'opt_sun':100, 'opt_h2o':50, 'h2o_loss_rate':5}
-plant_2_pref = {'opt_sun':300, 'opt_h2o':25, 'h2o_loss_rate':1}
+plant_1_pref = {'opt_sun':200, 'opt_h2o':50, 'h2o_loss_rate':5}
+plant_2_pref = {'opt_sun':200, 'opt_h2o':25, 'h2o_loss_rate':1}
 
 # construct plants
 for i in range(NUM_AGENTS): 
