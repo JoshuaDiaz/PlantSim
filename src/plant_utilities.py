@@ -42,15 +42,6 @@ def tint(sprite, tint_color):
 def dist(x1, y1, x2, y2):
     return sqrt((x1-x2)**2 + (y1-y2)**2)
 
-def resolve_color(plant):
-    color = BLACK
-    # dead agent
-    if(plant.dead):
-        color = GRAY 
-    # optimal agent
-    elif(plant.is_sun_optimal(SUN_POS[0], SUN_POS[1])):  
-        color = RED
-    return color
 
 
 

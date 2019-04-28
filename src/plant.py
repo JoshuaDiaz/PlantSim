@@ -4,12 +4,12 @@ from plant_utilities import *
 
 class Plant:
     def __init__(self, pref, x_init, y_init, mode, sprite):
-        self.pref = pref # 'opt_sun' 'opt_h2o' 'h2o_loss_rate'
-        self.health = 100	
+        self.pref = pref # 'opt_sun' 'opt_h2o' 'h2o_loss_rate'	
         self.sun_health = 60
         self.water_health = 60
+        self.health = self.sun_health + self.water_health
         self.sprite = scale(sprite, (20, 20))
-        self.rect = sprite.get_rect()
+        self.rect = self.sprite.get_rect()
         self.rect.centerx = x_init
         self.rect.centery = y_init
         self.dead = False
@@ -44,32 +44,19 @@ class Plant:
         self.rect.centery += (vel if ((pos_y - self.rect.centery) > opt) else -vel)
 
 
-    def death_roll(self, thresh):
+    def death_roll(self):
         """
         Roll the die to see if this agent will live or pay the eternal price
-
-        Args:
-            thresh (float): value compared to death prob for deciding mortality
 
         Returns:
             bool: True if dies, false otherwise
         """
-	    #see if it died	
-        if(self.dead): return False
-
         # update health
         self.health = self.water_health + self.sun_health
-
 	    #calculate chance of death
-        if(self.health >= 100):
-            return False
-        else: 
-            chance = 100 - self.health
-            if( randint(0,100) > chance ): 
-                return False
-            else:
-                self.dead = True
-                return True
+        if(self.health <= 100): 
+            self.dead = (randint(0,100) < (100 - self.health))
+        return self.dead
 
 
 
@@ -85,9 +72,9 @@ class Plant:
             bool: True if optimally placed, false otherwise
         """
         r = abs(self.pref['opt_sun'] - dist(self.rect.centerx, self.rect.centery, light_pos_x, light_pos_y))
-        return r <= 0.1  
+        return r <= 10  
 
-    def is_water_optimal(self, water_pos_x, water_pos_y, water_max):
+    def is_water_optimal(self, water_pos_x, water_pos_y):
         """
         Returns whether this agent is optimally placed by distance to water
 
@@ -98,7 +85,7 @@ class Plant:
         Returns:
             bool: True if optimally placed, false otherwise
         """
-        return dist(self.rect.centerx, self.rect.centery, water_pos_x, water_pos_y) <= water_max 
+        return dist(self.rect.centerx, self.rect.centery, water_pos_x, water_pos_y) <= self.pref["opt_h2o"] 
 
     def move_toward(self, vel, pos_x, pos_y, opt):
         """
@@ -151,27 +138,29 @@ class Plant:
             water_pos_y: y position of water in world coordinates
         """
         # if agent is within distance 1 of water source, add water
-        if( dist(self.rect.centerx, self.rect.centery, water_pos_x, water_pos_y) < 1 ):	
+        if( self.is_water_optimal(water_pos_x, water_pos_y) ):	
             self.water_health += 5
 	# decrease water if not near water source
         else:
-            self.water_health -= self.pref['h2o_loss_rate']
+            self.water_health -= 1 #self.pref['h2o_loss_rate']
 
 	# lose water faster if near light
-        r = dist(self.rect.centerx, self.rect.centery, light_pos_x, light_pos_y)
-        if(r < 100):	
-            if(r > 1):
-                self.water_health -= 10/r
-            else:
-                self.water_health -= 10	
+        # r = dist(self.rect.centerx, self.rect.centery, light_pos_x, light_pos_y)
+        # if(r < 100):	
+        #     if(r > 1):
+        #         self.water_health -= 10/r
+        #     else:
+        #         self.water_health -= 10	
 
     def resolve_color(self, sun_pos, water_pos):
         #default color (none)
         color = BLACK
         # dead agent
         if(self.dead):
-                color = GRAY 
+            color = GRAY 
         # optimal agent
         elif(self.is_sun_optimal(sun_pos[0], sun_pos[1])): 
             color = RED
+        elif(self.is_water_optimal(water_pos[0], water_pos[1])):
+            color = CYAN
         return color	
