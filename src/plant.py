@@ -1,6 +1,7 @@
 from random import randint
 from pygame.transform import scale
 from plant_utilities import *
+from math import exp
 
 class Plant:
     def __init__(self, pref, x_init, y_init, mode, sprite):
@@ -14,15 +15,16 @@ class Plant:
         self.rect.centery = y_init
         self.dead = False
         self.mode = mode	# 0=light, 1=water, 2=VOC 
+        self.stress = 0 # ranges 0 - 100
 
     def move_toward_x(self, vel, pos_x, opt):
         """
-        Update the x_pos of this agent to move toward the sun by vel
+        Update the x_pos of this agent to move toward the resource by vel
 
         Args:
             vel: absolute value of amount to increment x_pos
-            pos_x: x position of the resource in world coordinates
-            opt: the optimal value for the resource
+            pos_x: x position of the resource
+            opt: the optimal distance to the resource
         """
         #don't move when agent is close to light source
         if(abs(self.rect.centerx - pos_x) <= opt): return         
@@ -31,12 +33,12 @@ class Plant:
     
     def move_toward_y(self, vel, pos_y, opt):
         """
-        Update the y_pos of this agent to move toward the sun by vel
+        Update the y_pos of this agent to move toward the resource by vel
 
         Args:
-            vel (float): absolute value of amount to increment y_pos
-            pos_y: y position of the resource in world coordinates
-            opt: the optimal value for the resource
+            vel: absolute value of amount to increment x_pos
+            pos_y: y position of the resource
+            opt: the optimal distance to the resource
         """
         #don't move when agent is close to light source
         if(abs(self.rect.centery - pos_y) <= opt): return         
@@ -55,7 +57,7 @@ class Plant:
         self.health = self.water_health + self.sun_health
 	    #calculate chance of death
         if(self.health <= 100): 
-            self.dead = (randint(0,100) < (100 - self.health))
+            self.dead = (randint(0,1000) < (100 - self.health)) #too likely to die rn, change!
         return self.dead
 
 
@@ -65,8 +67,8 @@ class Plant:
         Returns whether this agent is optimally placed by distance to the sun
 
         Args:
-            light_pos_x: x position of the light in world coordinates
-            light_pos_y: y position of the light in world coordinates
+            light_pos_x: x position of the light
+            light_pos_y: y position of the light
 
         Returns:
             bool: True if optimally placed, false otherwise
@@ -79,8 +81,8 @@ class Plant:
         Returns whether this agent is optimally placed by distance to water
 
         Args:
-            water_pos_x: x position of the water in world coordinates
-            water_pos_y: y position of the water in world coordinates
+            water_pos_x: x position of the water
+            water_pos_y: y position of the water
             water_max: maximum water distance that can be considered optimal
         Returns:
             bool: True if optimally placed, false otherwise
@@ -89,78 +91,61 @@ class Plant:
 
     def move_toward(self, vel, pos_x, pos_y, opt):
         """
-        Update the x_pos and y_pos of this agent to move toward the sun by vel
+        Update the coordinates of this agent to move toward the sun by vel
 
         Args:
-            vel (float): absolute value of amount to increment x_pos
-            pos_x: x position of the resource in world coordinates
-            pos_y: y position of the resource in world coordinates
+            vel: absolute value of amount to increment x_pos
+            pos_x: x position of the resource
+            pos_y: y position of the resource
             opt: the optimal value for the resource
         """
-        # if along the right vertical
-        if((self.rect.centerx  - pos_x) == 0):
-            x = 0
-            y = 1
+        dx_vect = pos_x - self.rect.centerx
+        dy_vect = pos_y - self.rect.centery
+        mag = dist(pos_x, pos_y, self.rect.centerx, self.rect.centery)
+        if(mag > opt):
+            self.rect.centerx += (dx_vect/mag)*vel
+            self.rect.centery += (dy_vect/mag)*vel
         else:
-            slope = (self.rect.centery - pos_y)/(self.rect.centerx  - pos_x)
-	        # slope greater than 1
-            if(abs(slope) > 1):
-                x = 1/abs(slope)
-                y = 1
-            else:
-                x = 1
-                y = ( 1/abs(slope) if (slope != 0) else 0)
-	
-	    # check positive x-position
-        if((self.rect.centerx  - pos_x) >0):
-            x = -x
-	    # check posiive y-position
-        if((self.rect.centery - pos_y) >0):
-            y = -y
+            self.rect.centerx -= (dx_vect/mag)*vel
+            self.rect.centery -= (dy_vect/mag)*vel
 
-        # if distance is smaller than opt_sun
-        if( dist(self.rect.centerx, self.rect.centery, pos_x, pos_y) < opt) :
-            x = -x
-            y = -y            
-
-        self.rect.centerx  += x * vel
-        self.rect.centery += y * vel
-
-    def lose_water(self,light_pos_x, light_pos_y, water_pos_x, water_pos_y):
+    def update_health(self, light_pos_x, light_pos_y, water_pos_x, water_pos_y):
         """
         Update water health of agent, water health increases if near water source,
 	    water health decreases by h2o_loss_rate if away
 
         Args:
-            light_pos_x: x position of the light in world coordinates
-            light_pos_y: y position of the light in world coordinates
-            water_pos_x: x position of water in world coordinates
-            water_pos_y: y position of water in world coordinates
+            light_pos_x: x position of the light
+            light_pos_y: y position of the light
+            water_pos_x: x position of water
+            water_pos_y: y position of water
         """
-        # if agent is within distance 1 of water source, add water
-        if( self.is_water_optimal(water_pos_x, water_pos_y) ):	
-            self.water_health += 5
-	# decrease water if not near water source
-        else:
-            self.water_health -= 1 #self.pref['h2o_loss_rate']
+        #SUN
+        # distance to the circle of optimal sun 
+        dist_to_opt = abs(dist(self.rect.centerx, self.rect.centery, light_pos_x, light_pos_y) - self.pref['opt_sun'])
+        p = 2 # amount gained if plant is right at the optimal sun amount
+        b = 0.01 # coefficient of how fast health gain falls over distance squared, think of it as Gmm in Gmm/r^2 (gravity)
+        q = 1 # max loss an agent will face when away from optimal sun distance
+        self.sun_health += (p+1)*exp(-(b*dist_to_opt**2)) - q 
 
-	# lose water faster if near light
-        # r = dist(self.rect.centerx, self.rect.centery, light_pos_x, light_pos_y)
-        # if(r < 100):	
-        #     if(r > 1):
-        #         self.water_health -= 10/r
-        #     else:
-        #         self.water_health -= 10	
+        # WATER
+        # if agent is within distance 1 of water source, add water
+        if( self.is_water_optimal(water_pos_x, water_pos_y) and self.water_health < 60):	
+            self.water_health += 2
+	    # decrease water if not near water source
+        else:
+            self.water_health -= .25 #self.pref['h2o_loss_rate']
 
     def resolve_color(self, sun_pos, water_pos):
-        #default color (none)
-        color = BLACK
         # dead agent
         if(self.dead):
-            color = GRAY 
+            return GRAY 
         # optimal agent
         elif(self.is_sun_optimal(sun_pos[0], sun_pos[1])): 
-            color = RED
+            if(self.is_water_optimal(water_pos[0], water_pos[1])):
+                return PURPLE
+            return RED
         elif(self.is_water_optimal(water_pos[0], water_pos[1])):
-            color = CYAN
-        return color	
+            return CYAN
+        # default
+        return BLACK	

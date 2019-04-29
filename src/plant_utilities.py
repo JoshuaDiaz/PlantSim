@@ -16,6 +16,7 @@ BLUE = 0,0,255
 CYAN = 0,255,255
 RED = 255,0,0
 ORANGE = 255,165,0
+PURPLE = 128,0,128
 
 def world_to_screen(x, y, MAX_X, MAX_Y, SCREEN_SIZE):
     """
@@ -41,7 +42,3 @@ def tint(sprite, tint_color):
 
 def dist(x1, y1, x2, y2):
     return sqrt((x1-x2)**2 + (y1-y2)**2)
-
-
-
-

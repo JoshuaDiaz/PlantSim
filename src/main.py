@@ -15,8 +15,8 @@ SCREEN_SIZE = 600,300
 SUN_POS = 125,125
 WATER_POS = 300,100
 STEP_TIME = 0.25 # time between updates 
-NUM_AGENTS = 2  # number of plants operating
-VEL = 2        # movement speed of agents
+NUM_AGENTS = 10  # number of plants operating
+VEL = 5        # movement speed of agents
 agents = []      # list of all agents
 death_count = 0  # amount of dead agents
 
@@ -55,10 +55,8 @@ while(running):
     screen.fill(WHITE)
     #update all agents
     for i in range(NUM_AGENTS):
-
-        #update water health
-        agents[i].lose_water(SUN_POS[0], SUN_POS[1], WATER_POS[0], WATER_POS[1])
-
+        print("plant " + str(i) + " sun  " + str(agents[i].sun_health))
+        print("plant " + str(i) + " water  " + str(agents[i].water_health))
         # move if not dead
         if(not(agents[i].dead)):
             #choose mode
@@ -87,19 +85,10 @@ while(running):
                         agents[i].rect.center = last_pos
 
             # VOC 
-            #else:
+            
 
-            #update sun health
-            if(agents[i].is_sun_optimal(SUN_POS[0], SUN_POS[1])):
-                if(agents[i].sun_health < 60):
-                    agents[i].sun_health += 1
-                else:
-                    agents[i].sun_health -= 1
-
-            #update water health
-            if(agents[i].is_water_optimal(WATER_POS[0], WATER_POS[1])):
-                if(agents[i].water_health < 60):
-                    agents[i].water_health += 1
+            #update sun health / water health
+            agents[i].update_health(SUN_POS[0], SUN_POS[1], WATER_POS[0], WATER_POS[1])
 
             # agent plays the game of survival
             if(agents[i].death_roll()):
