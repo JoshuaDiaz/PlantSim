@@ -1,7 +1,6 @@
 import pygame
 from math import sqrt
 from enum import Enum
-#from plant import Plant
 
 class mode(Enum):
     LIGHT = 0
@@ -42,3 +41,4 @@ def tint(sprite, tint_color):
 
 def dist(x1, y1, x2, y2):
     return sqrt((x1-x2)**2 + (y1-y2)**2)
+
