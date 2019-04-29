@@ -53,9 +53,7 @@ class Plant:
         Returns:
             bool: True if dies, false otherwise
         """
-        # update health
         self.health = self.water_health + self.sun_health
-	    #calculate chance of death
         if(self.health <= 100): 
             self.dead = (randint(0,1000) < (100 - self.health)) #too likely to die rn, change!
         return self.dead
@@ -109,8 +107,9 @@ class Plant:
     
 
     def check_collision(self, plant):
-        col_dist = 25 #collision distance
-        return (dist(self.rect.centerx, self.rect.centery, plant.rect.centerx, plant.rect.centery) < col_dist)
+        return self.rect.colliderect(plant.rect)
+        # col_dist = 25 #collision distance
+        #return (dist(self.rect.centerx, self.rect.centery, plant.rect.centerx, plant.rect.centery) < col_dist)
 
 
     def update_health(self, light_pos_x, light_pos_y, water_pos_x, water_pos_y):

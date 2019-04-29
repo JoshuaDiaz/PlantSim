@@ -67,6 +67,7 @@ while(running):
                 death_count += 1
                 #print("Plant " + str(i) + " died at health " + str(agents[i].health))
             else:
+                # it didn't kill them! get a new position
                 #choose mode
                 if(agents[i].sun_health > agents[i].water_health):
                     agents[i].mode = mode.WATER
@@ -111,7 +112,7 @@ while(running):
     pygame.draw.circle(screen, BLUE, WATER_POS, 10)  
     pygame.display.flip()
 
-    # exit game if player tries
+    # exit sim if player tries
     for event in pygame.event.get():
         if(event.type == pygame.QUIT): running = False
         
