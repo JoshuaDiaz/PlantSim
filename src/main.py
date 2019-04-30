@@ -16,7 +16,7 @@ SUN_POS = 200,150
 WATER_POS = 400,150
 STEP_TIME = 0.05 # time between updates 
 NUM_PLANT_TYPES = 2 # number of different plant types
-NUM_AGENTS = 20  # number of plants operating
+NUM_AGENTS = 10  # number of plants operating
 VEL = 5        # movement speed of agents
 agents = []      # list of all agents
 death_count = 0  # amount of dead agents
@@ -32,18 +32,24 @@ pygame.mouse.set_visible(True)
 screen = pygame.display.set_mode((SCREEN_SIZE))
 
 # define plant preferences
-plant_1_pref = {'opt_sun':50, 'opt_h2o':20, 'h2o_loss_rate':5}
-plant_2_pref = {'opt_sun':100, 'opt_h2o':20, 'h2o_loss_rate':1}
-plant_prefs = [plant_1_pref, plant_2_pref]
+plant_0_pref = {'opt_sun':50, 'opt_h2o':20, 'h2o_loss_rate':5}
+plant_1_pref = {'opt_sun':100, 'opt_h2o':20, 'h2o_loss_rate':1}
+plant_2_pref = {'opt_sun':50, 'opt_h2o':20, 'h2o_loss_rate':5}
+plant_3_pref = {'opt_sun':100, 'opt_h2o':20, 'h2o_loss_rate':1}
+plant_prefs = [plant_0_pref, plant_1_pref, plant_2_pref, plant_3_pref]
 
-plant_1_voc = {'strength': 3, 'emittance':40}
-plant_2_voc = {'strength': 5, 'emittance':40}
-plant_voc = [plant_1_voc, plant_2_voc]
+plant_0_voc = {'strength': 3, 'emittance':40}
+plant_1_voc = {'strength': 5, 'emittance':40}
+plant_2_voc = {'strength': 3, 'emittance':40}
+plant_3_voc = {'strength': 5, 'emittance':40}
+
+plant_voc = [plant_0_voc, plant_1_voc, plant_2_voc, plant_3_voc]
 # construct plants
 rect_list = []
 for i in range(NUM_PLANT_TYPES):
+    sprite = pygame.image.load("../assets/plant_" + str(i) + ".bmp")
+    print("../assets/plant_" + str(i) + ".bmp")
     for j in range(int(NUM_AGENTS/NUM_PLANT_TYPES)): 
-        sprite = pygame.image.load("../assets/plant_" + str(i) + ".bmp")
         p = Plant(plant_prefs[i], randint(0,SCREEN_SIZE[0]), randint(0,SCREEN_SIZE[1]), mode.LIGHT, sprite, plant_voc[i])
         while(len(agents) != 0 and p.rect.collidelist(rect_list) != -1):
             p.rect.centerx = randint(0,SCREEN_SIZE[0])

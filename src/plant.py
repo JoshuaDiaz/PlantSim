@@ -10,7 +10,7 @@ class Plant:
         self.sun_health = 60
         self.water_health = 60
         self.health = self.sun_health + self.water_health
-        self.sprite = pygame.transform.scale(sprite, (20, 20))
+        self.sprite = pygame.transform.scale(sprite, (int(20*sprite.get_width()/sprite.get_height()),20))
         self.rect = self.sprite.get_rect()
         self.rect.centerx = x_init
         self.rect.centery = y_init
@@ -134,7 +134,7 @@ class Plant:
         dist_to_opt = abs(dist(self.rect.centerx, self.rect.centery, light_pos_x, light_pos_y) - self.pref['opt_sun'])
         p = 2 # amount health gained if plant is right at the optimal sun amount
         b = 0.01 # time constant of exponential decay
-        q = 1 # max loss an agent will face when away from optimal sun distance
+        q = 0.25 # max loss an agent will face when away from optimal sun distance
         self.sun_health += (p+q)*exp(-(b*dist_to_opt**2)) - q 
         self.stress -= (p+q)*exp(-(b*dist_to_opt**2)) - q 
         if(self.sun_health < 0): self.sun_health = 0
