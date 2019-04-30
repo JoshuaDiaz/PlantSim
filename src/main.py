@@ -36,8 +36,8 @@ plant_1_pref = {'opt_sun':50, 'opt_h2o':20, 'h2o_loss_rate':5}
 plant_2_pref = {'opt_sun':100, 'opt_h2o':20, 'h2o_loss_rate':1}
 plant_prefs = [plant_1_pref, plant_2_pref]
 
-plant_1_voc = {'strength': 3, 'emittance':50}
-plant_2_voc = {'strength': 5, 'emittance':100}
+plant_1_voc = {'strength': 3, 'emittance':40}
+plant_2_voc = {'strength': 5, 'emittance':40}
 plant_voc = [plant_1_voc, plant_2_voc]
 # construct plants
 rect_list = []

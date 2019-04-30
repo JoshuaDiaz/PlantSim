@@ -162,12 +162,12 @@ class Plant:
             r = dist(self.rect.centerx, self.rect.centery, agents[i].rect.centerx, agents[i].rect.centery)
             u_x = (self.rect.centerx - agents[i].rect.centerx) / r
             u_y = (self.rect.centery - agents[i].rect.centery) / r       
-            mag = agents[i].stress*exp(-(r/agents[i].voc_emittance)**2)
+            mag = agents[i].stress*exp(-(1/agents[i].voc_emittance)*(r**2))
             vec_x += mag*u_x
             vec_y += mag*u_y
 
-        if(vec_x == 0 and vec_y == 0): return 
         mag_of_sum = sqrt(vec_x**2 + vec_y**2)
+        if(mag_of_sum == 0): return
         vec_x = vel * (vec_x / mag_of_sum)    
         vec_y = vel * (vec_y / mag_of_sum)  
         self.rect.centerx += vec_x
