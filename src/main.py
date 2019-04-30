@@ -12,11 +12,11 @@ from plant_utilities import *
 
 # Simulation parameters
 SCREEN_SIZE = 600,300
-SUN_POS = 125,125
-WATER_POS = 300,100
+SUN_POS = 200,150
+WATER_POS = 400,150
 STEP_TIME = 0.05 # time between updates 
 NUM_PLANT_TYPES = 2 # number of different plant types
-NUM_AGENTS = 50  # number of plants operating
+NUM_AGENTS = 20  # number of plants operating
 VEL = 5        # movement speed of agents
 agents = []      # list of all agents
 death_count = 0  # amount of dead agents
