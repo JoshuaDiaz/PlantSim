@@ -14,7 +14,7 @@ from plant_utilities import *
 SCREEN_SIZE = 600,300
 SUN_POS = 125,125
 WATER_POS = 300,100
-STEP_TIME = 0.25 # time between updates 
+STEP_TIME = 0.05 # time between updates 
 NUM_PLANT_TYPES = 2 # number of different plant types
 NUM_AGENTS = 50  # number of plants operating
 VEL = 5        # movement speed of agents
@@ -32,16 +32,19 @@ pygame.mouse.set_visible(True)
 screen = pygame.display.set_mode((SCREEN_SIZE))
 
 # define plant preferences
-plant_1_pref = {'opt_sun':50, 'opt_h2o':50, 'h2o_loss_rate':5}
-plant_2_pref = {'opt_sun':100, 'opt_h2o':25, 'h2o_loss_rate':1}
+plant_1_pref = {'opt_sun':50, 'opt_h2o':20, 'h2o_loss_rate':5}
+plant_2_pref = {'opt_sun':100, 'opt_h2o':20, 'h2o_loss_rate':1}
 plant_prefs = [plant_1_pref, plant_2_pref]
 
+plant_1_voc = {'strength': 3, 'emittance':50}
+plant_2_voc = {'strength': 5, 'emittance':100}
+plant_voc = [plant_1_voc, plant_2_voc]
 # construct plants
 rect_list = []
 for i in range(NUM_PLANT_TYPES):
     for j in range(int(NUM_AGENTS/NUM_PLANT_TYPES)): 
         sprite = pygame.image.load("../assets/plant_" + str(i) + ".bmp")
-        p = Plant(plant_prefs[i], randint(0,SCREEN_SIZE[0]), randint(0,SCREEN_SIZE[1]), mode.LIGHT, sprite)
+        p = Plant(plant_prefs[i], randint(0,SCREEN_SIZE[0]), randint(0,SCREEN_SIZE[1]), mode.LIGHT, sprite, plant_voc[i])
         while(len(agents) != 0 and p.rect.collidelist(rect_list) != -1):
             p.rect.centerx = randint(0,SCREEN_SIZE[0])
             p.rect.centery = randint(0,SCREEN_SIZE[1])
@@ -80,22 +83,25 @@ while(running):
                 # LIGHT
                 if(agents[i].mode == mode.LIGHT):
                     agents[i].move_toward(VEL, SUN_POS[0], SUN_POS[1], agents[i].pref['opt_sun'])
+                    agents[i].resolve_vocs(VEL, agents)
                     # check collisions
                     for j in range(len(agents)):
-                        if(i != j and agents[i].check_collision(agents[j])):
-                            agents[i].rect.centerx = temp_x
-                            agents[i].rect.centery = temp_y      
-                # WATER
-                elif(agents[i].mode == mode.WATER):
-                    agents[i].move_toward(VEL, WATER_POS[0], WATER_POS[1], agents[i].pref['opt_h2o'])
-                    # check collisions
-                    for j in range(len(agents)):
-                        if(i != j and agents[i].check_collision(agents[j])):
+                        if(i != j and agents[i].is_colliding(agents[j])):
                             agents[i].rect.centerx = temp_x
                             agents[i].rect.centery = temp_y
 
+                # WATER
+                elif(agents[i].mode == mode.WATER):
+                    agents[i].move_toward(VEL, WATER_POS[0], WATER_POS[1], agents[i].pref['opt_h2o'])
+                    agents[i].resolve_vocs(VEL, agents)
+                    # check collisions
+                    for j in range(len(agents)):
+                        if(i != j and agents[i].is_colliding(agents[j])):
+                            agents[i].rect.centerx = temp_x
+                            agents[i].rect.centery = temp_y 
                 # VOC 
                 
+
                 # limit to bounds
                 if(agents[i].rect.centerx < 0): agents[i].rect.centerx = 0
                 if(agents[i].rect.centerx > SCREEN_SIZE[0]): agents[i].rect.centerx = SCREEN_SIZE[0]

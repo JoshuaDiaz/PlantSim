@@ -1,11 +1,11 @@
 from random import randint
 from plant_utilities import *
 from math import exp
+from math import sqrt
 
 class Plant:
 
-
-    def __init__(self, pref, x_init, y_init, mode, sprite):
+    def __init__(self, pref, x_init, y_init, mode, sprite, voc_attributes):
         self.pref = pref # 'opt_sun' 'opt_h2o' 'h2o_loss_rate'	
         self.sun_health = 60
         self.water_health = 60
@@ -16,7 +16,9 @@ class Plant:
         self.rect.centery = y_init
         self.dead = False
         self.mode = mode	# 0=light, 1=water, 2=VOC 
-        self.stress = 0 # ranges 0 - 100
+        self.stress = 0 # ranges 0 - voc_max
+        self.voc_max = voc_attributes['strength'] # max voc output for max stressed plant
+        self.voc_emittance = voc_attributes['emittance'] # 1 / exponential constant of voc dropoff
 
     # def move_toward_x(self, vel, pos_x, opt):
     #     """
@@ -53,9 +55,8 @@ class Plant:
         Returns:
             bool: True if dies, false otherwise
         """
-        self.health = self.water_health + self.sun_health
-        if(self.health <= 100): 
-            self.dead = (randint(0,1000) < (100 - self.health)) #too likely to die rn, change!
+        # if(self.health <= 100): 
+        #     self.dead = (randint(0,1000) < (100 - self.health)) #too likely to die rn, change!
         return self.dead
 
 
@@ -104,9 +105,9 @@ class Plant:
 
         self.rect.centerx += (dx_vect/mag)*vel if (mag>opt) else -(dx_vect/mag)*vel
         self.rect.centery += (dy_vect/mag)*vel if (mag>opt) else -(dy_vect/mag)*vel
-    
 
-    def check_collision(self, plant):
+
+    def is_colliding(self, plant):
         return self.rect.colliderect(plant.rect)
         # col_dist = 25 #collision distance
         #return (dist(self.rect.centerx, self.rect.centery, plant.rect.centerx, plant.rect.centery) < col_dist)
@@ -114,8 +115,12 @@ class Plant:
 
     def update_health(self, light_pos_x, light_pos_y, water_pos_x, water_pos_y):
         """
-        Update water health of agent, water health increases if near water source,
-	    water health decreases by h2o_loss_rate if away
+        Update water and sun health of agent
+
+        Water health increases if near water source, and decreases if away.
+        
+        Sun health gain decreases on an exponential gradient from the optimal
+        placement relative to the sun
 
         Args:
             light_pos_x: x position of the light
@@ -123,27 +128,55 @@ class Plant:
             water_pos_x: x position of water
             water_pos_y: y position of water
         """
+        self.stress = 0
         #SUN
         # distance to the circle of optimal sun 
         dist_to_opt = abs(dist(self.rect.centerx, self.rect.centery, light_pos_x, light_pos_y) - self.pref['opt_sun'])
-        p = 2 # amount gained if plant is right at the optimal sun amount
+        p = 2 # amount health gained if plant is right at the optimal sun amount
         b = 0.01 # time constant of exponential decay
         q = 1 # max loss an agent will face when away from optimal sun distance
         self.sun_health += (p+q)*exp(-(b*dist_to_opt**2)) - q 
+        self.stress -= (p+q)*exp(-(b*dist_to_opt**2)) - q 
+        if(self.sun_health < 0): self.sun_health = 0
 
         # WATER
         # if agent is within distance 1 of water source, add water
-        if( self.is_water_optimal(water_pos_x, water_pos_y) and self.water_health < 60):	
+        if(self.is_water_optimal(water_pos_x, water_pos_y) and self.water_health < 60):	
             self.water_health += 2
+            self.stress -= 2
 	    # decrease water if not near water source
-        else:
+        elif(self.water_health >= 0.25):
             self.water_health -= .25 #self.pref['h2o_loss_rate']
+            self.stress += 1
+
+        if(self.stress < 0): self.stress = 0
+        elif(self.stress > self.voc_max): self.stress = self.voc_max
+        
+        self.health = self.water_health + self.sun_health
+
+    def resolve_vocs(self, vel, agents):
+        vec_x = 0
+        vec_y = 0
+        for i in range(len(agents)):
+            if(self == agents[i]): continue
+            r = dist(self.rect.centerx, self.rect.centery, agents[i].rect.centerx, agents[i].rect.centery)
+            u_x = (self.rect.centerx - agents[i].rect.centerx) / r
+            u_y = (self.rect.centery - agents[i].rect.centery) / r       
+            mag = agents[i].stress*exp(-(r/agents[i].voc_emittance)**2)
+            vec_x += mag*u_x
+            vec_y += mag*u_y
+
+        if(vec_x == 0 and vec_y == 0): return 
+        mag_of_sum = sqrt(vec_x**2 + vec_y**2)
+        vec_x = vel * (vec_x / mag_of_sum)    
+        vec_y = vel * (vec_y / mag_of_sum)  
+        self.rect.centerx += vec_x
+        self.rect.centery += vec_y
 
 
     def resolve_color(self, sun_pos, water_pos):
         # dead agent
-        if(self.dead):
-            return GRAY 
+        if(self.dead): return GRAY 
         # optimal agent
         elif(self.is_sun_optimal(sun_pos[0], sun_pos[1])): 
             if(self.is_water_optimal(water_pos[0], water_pos[1])):
