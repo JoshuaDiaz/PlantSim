@@ -15,7 +15,7 @@ from math import exp
 SCREEN_SIZE = 600,300
 SUN_POS = 200,150
 WATER_POS = 400,150
-STEP_TIME = 0.025 # time between updates 
+STEP_TIME = 0.15 # time between updates 
 NUM_PLANT_TYPES = 2 # number of different plant types
 NUM_AGENTS = 50  # number of plants operating
 VEL = 5        # movement speed of agents
@@ -33,10 +33,10 @@ pygame.mouse.set_visible(True)
 screen = pygame.display.set_mode((SCREEN_SIZE))
 
 # define plant preferences
-plant_0_pref = {'opt_sun':50, 'opt_h2o':20, 'h2o_loss_rate':5}
-plant_1_pref = {'opt_sun':100, 'opt_h2o':20, 'h2o_loss_rate':1}
-plant_2_pref = {'opt_sun':50, 'opt_h2o':20, 'h2o_loss_rate':5}
-plant_3_pref = {'opt_sun':100, 'opt_h2o':20, 'h2o_loss_rate':1}
+plant_0_pref = {'opt_sun':50, 'opt_h2o':50, 'h2o_loss_rate':5}
+plant_1_pref = {'opt_sun':100, 'opt_h2o':50, 'h2o_loss_rate':1}
+plant_2_pref = {'opt_sun':50, 'opt_h2o':50, 'h2o_loss_rate':5}
+plant_3_pref = {'opt_sun':100, 'opt_h2o':50, 'h2o_loss_rate':1}
 plant_prefs = [plant_0_pref, plant_1_pref, plant_2_pref, plant_3_pref]
 
 plant_0_voc = {'strength': 3, 'emittance':70}
@@ -82,7 +82,7 @@ while(running):
                 if(agents[i].sun_health > agents[i].water_health):
                     agents[i].mode = mode.WATER
                 else:
-                    agents[i].mode = mode.WATER
+                    agents[i].mode = mode.LIGHT
 
                 temp_x = agents[i].rect.centerx
                 temp_y = agents[i].rect.centery
@@ -94,9 +94,10 @@ while(running):
                     # check collisions
                     for j in range(len(agents)):
                         if(i != j and agents[i].is_colliding(agents[j])):
-                            continue
-                            #agents[i].rect.centerx = temp_x
-                            #agents[i].rect.centery = temp_y
+                            #continue
+                            agents[i].rect.centerx = temp_x
+                            agents[i].rect.centery = temp_y
+                            agents[i].resolve_vocs(VEL, agents)
 
                 # WATER
                 elif(agents[i].mode == mode.WATER):
@@ -105,9 +106,10 @@ while(running):
                     # check collisions
                     for j in range(len(agents)):
                         if(i != j and agents[i].is_colliding(agents[j])):
-                            continue
-                            #agents[i].rect.centerx = temp_x
-                            #agents[i].rect.centery = temp_y 
+                            #continue
+                            agents[i].rect.centerx = temp_x
+                            agents[i].rect.centery = temp_y 
+                            agents[i].resolve_vocs(VEL, agents)
                 # VOC 
                 
 
