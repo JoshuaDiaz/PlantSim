@@ -19,6 +19,7 @@ class Plant:
         self.stress = 0 # ranges 0 - voc_max
         self.voc_max = voc_attributes['strength'] # max voc output for max stressed plant
         self.voc_emittance = voc_attributes['emittance'] # 1 / exponential constant of voc dropoff
+        self.timer = 0
 
     # def move_toward_x(self, vel, pos_x, opt):
     #     """
@@ -55,8 +56,8 @@ class Plant:
         Returns:
             bool: True if dies, false otherwise
         """
-        #if(self.health <= 100): 
-         #   self.dead = (randint(0,100000) < (100 - self.health)) #too likely to die rn, change!
+        if(self.health <= 100): 
+           self.dead = (randint(0,80) > self.health) #too likely to die rn, change!
         return self.dead
 
 
@@ -136,14 +137,20 @@ class Plant:
         b = 0.01 # time constant of exponential decay
         q = 0.25 # max loss an agent will face when away from optimal sun distance
         self.sun_health += (p+q)*exp(-(b*dist_to_opt**2)) - q 
-        if(self.mode == mode.LIGHT): self.stress -= (p+q)*exp(-(b*dist_to_opt**2)) - q 
+        if(self.mode == mode.LIGHT): self.stress -= ((2*p)+q)*exp(-(b*dist_to_opt**2)) - q 
         if(self.sun_health < 0): self.sun_health = 0
+        if(self.sun_health >= 70):
+            self.sun_health = 70
+            self.timer = 0
 
         # WATER
         # if agent is within distance 1 of water source, add water
-        if(self.is_water_optimal(water_pos_x, water_pos_y) and self.water_health < 60):	
+        if(self.is_water_optimal(water_pos_x, water_pos_y) and self.water_health < 70):	
             self.water_health += 2
-            if(self.mode == mode.WATER): self.stress -= 1
+            if(self.mode == mode.WATER): self.stress -= 5
+            if(self.water_health >= 70):
+                self.water_health = 70
+                self.timer = 0
 	    # decrease water if not near water source
         elif(self.water_health >= 0.25):
             self.water_health -= .25 #self.pref['h2o_loss_rate']
@@ -163,7 +170,7 @@ class Plant:
                     r = dist(self.rect.centerx, self.rect.centery, agents[i].rect.centerx, agents[i].rect.centery)
                     u_x = (self.rect.centerx - agents[i].rect.centerx) / r
                     u_y = (self.rect.centery - agents[i].rect.centery) / r       
-                    mag = agents[i].stress*exp(-(1/agents[i].voc_emittance)*(r**2))
+                    mag = agents[i].stress*exp(-(1/(agents[i].voc_emittance *agents[i].stress))*(r**2))
                     vec_x += mag*u_x
                     vec_y += mag*u_y
                 except ZeroDivisionError:

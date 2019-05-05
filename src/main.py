@@ -13,11 +13,11 @@ from math import exp
 
 # Simulation parameters
 SCREEN_SIZE = 600,300
-SUN_POS = 200,150
-WATER_POS = 400,150
+SUN_POS = 100,150
+WATER_POS = 500,150
 STEP_TIME = 0.15 # time between updates 
 NUM_PLANT_TYPES = 2 # number of different plant types
-NUM_AGENTS = 50  # number of plants operating
+NUM_AGENTS = 20  # number of plants operating
 VEL = 5        # movement speed of agents
 agents = []      # list of all agents
 death_count = 0  # amount of dead agents
@@ -33,16 +33,16 @@ pygame.mouse.set_visible(True)
 screen = pygame.display.set_mode((SCREEN_SIZE))
 
 # define plant preferences
-plant_0_pref = {'opt_sun':50, 'opt_h2o':50, 'h2o_loss_rate':5}
-plant_1_pref = {'opt_sun':100, 'opt_h2o':50, 'h2o_loss_rate':1}
+plant_0_pref = {'opt_sun':50, 'opt_h2o':49, 'h2o_loss_rate':5}
+plant_1_pref = {'opt_sun':100, 'opt_h2o':49, 'h2o_loss_rate':1}
 plant_2_pref = {'opt_sun':50, 'opt_h2o':50, 'h2o_loss_rate':5}
 plant_3_pref = {'opt_sun':100, 'opt_h2o':50, 'h2o_loss_rate':1}
 plant_prefs = [plant_0_pref, plant_1_pref, plant_2_pref, plant_3_pref]
 
-plant_0_voc = {'strength': 3, 'emittance':70}
-plant_1_voc = {'strength': 5, 'emittance':70}
-plant_2_voc = {'strength': 3, 'emittance':40}
-plant_3_voc = {'strength': 5, 'emittance':40}
+plant_0_voc = {'strength': 3, 'emittance':3}
+plant_1_voc = {'strength': 5, 'emittance':3}
+plant_2_voc = {'strength': 3, 'emittance':3}
+plant_3_voc = {'strength': 5, 'emittance':3}
 
 plant_voc = [plant_0_voc, plant_1_voc, plant_2_voc, plant_3_voc]
 # construct plants
@@ -69,6 +69,9 @@ while(running):
         # update if not dead
         if(not(agents[i].dead)):
 
+            if(agents[i].timer != 0):
+                agents[i].timer = agents[i].timer - 1
+
             #update sun health / water health
             agents[i].update_health(SUN_POS[0], SUN_POS[1], WATER_POS[0], WATER_POS[1])
             
@@ -79,10 +82,12 @@ while(running):
             else:
                 # it didn't kill them! get a new position
                 #choose mode
-                if(agents[i].sun_health > agents[i].water_health):
-                    agents[i].mode = mode.WATER
-                else:
-                    agents[i].mode = mode.LIGHT
+                if(agents[i].timer == 0):
+                    if(agents[i].sun_health > agents[i].water_health):
+                        agents[i].mode = mode.WATER
+                    else:
+                        agents[i].mode = mode.LIGHT
+                    agents[i].timer = 200
 
                 temp_x = agents[i].rect.centerx
                 temp_y = agents[i].rect.centery
@@ -93,7 +98,7 @@ while(running):
                     agents[i].resolve_vocs(VEL, agents)
                     # check collisions
                     for j in range(len(agents)):
-                        if(i != j and agents[i].is_colliding(agents[j])):
+                        if(i != j and agents[i].is_colliding(agents[j]) and not agents[j].dead):
                             #continue
                             agents[i].rect.centerx = temp_x
                             agents[i].rect.centery = temp_y
@@ -105,7 +110,7 @@ while(running):
                     agents[i].resolve_vocs(VEL, agents)
                     # check collisions
                     for j in range(len(agents)):
-                        if(i != j and agents[i].is_colliding(agents[j])):
+                        if(i != j and agents[i].is_colliding(agents[j]) and not agents[j].dead):
                             #continue
                             agents[i].rect.centerx = temp_x
                             agents[i].rect.centery = temp_y 
@@ -126,7 +131,8 @@ while(running):
 
     # flip to the screen
     pygame.draw.circle(screen, ORANGE, SUN_POS, 10)  
-    pygame.draw.circle(screen, BLUE, WATER_POS, 10)  
+    pygame.draw.circle(screen, BLUE, WATER_POS, 5)
+    pygame.draw.circle(screen, BLUE, WATER_POS, plant_0_pref['opt_h2o'], 3)  
     pygame.display.flip()
 
     # exit sim if player tries
