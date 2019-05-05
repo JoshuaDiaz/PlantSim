@@ -21,34 +21,6 @@ class Plant:
         self.voc_emittance = voc_attributes['emittance'] # 1 / exponential constant of voc dropoff
         self.timer = 0
 
-    # def move_toward_x(self, vel, pos_x, opt):
-    #     """
-    #     Update the x_pos of this agent to move toward the resource by vel
-
-    #     Args:
-    #         vel: absolute value of amount to increment x_pos
-    #         pos_x: x position of the resource
-    #         opt: the optimal distance to the resource
-    #     """
-    #     #don't move when agent is close to light source
-    #     if(abs(self.rect.centerx - pos_x) <= opt): return         
-    #     # move away if opt_sun distance greater than current position
-    #     self.rect.centerx += (vel if ((pos_x - self.rect.centerx) > opt) else -vel)
-    
-    # def move_toward_y(self, vel, pos_y, opt):
-    #     """
-    #     Update the y_pos of this agent to move toward the resource by vel
-
-    #     Args:
-    #         vel: absolute value of amount to increment x_pos
-    #         pos_y: y position of the resource
-    #         opt: the optimal distance to the resource
-    #     """
-    #     #don't move when agent is close to light source
-    #     if(abs(self.rect.centery - pos_y) <= opt): return         
-    #     # move away if opt_sun distance greater than current position
-    #     self.rect.centery += (vel if ((pos_y - self.rect.centery) > opt) else -vel)
-
     def death_roll(self):
         """
         Roll the die to see if this agent will live or pay the eternal price
@@ -134,7 +106,7 @@ class Plant:
         # distance to the circle of optimal sun 
         dist_to_opt = abs(dist(self.rect.centerx, self.rect.centery, light_pos_x, light_pos_y) - self.pref['opt_sun'])
         p = 2 # amount health gained if plant is right at the optimal sun amount
-        b = 0.01 # time constant of exponential decay
+        b = 0.01 # constant of exponential decay from optimal
         q = 0.25 # max loss an agent will face when away from optimal sun distance
         self.sun_health += (p+q)*exp(-(b*dist_to_opt**2)) - q 
         if(self.mode == mode.LIGHT): self.stress -= ((2*p)+q)*exp(-(b*dist_to_opt**2)) - q 
