@@ -126,7 +126,8 @@ while(running):
 
     # flip to the screen
     pygame.draw.circle(screen, ORANGE, SUN_POS, 10)  
-    pygame.draw.circle(screen, BLUE, WATER_POS, 10)  
+    pygame.draw.circle(screen, BLUE, WATER_POS, 5)  
+    pygame.draw.circle(screen, BLUE, WATER_POS, plant_0_pref['opt_h2o'], 3)
     pygame.display.flip()
 
     # exit sim if player tries
