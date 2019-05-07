@@ -76,9 +76,12 @@ class Plant:
         dy_vect = pos_y - self.rect.centery
         mag = dist(pos_x, pos_y, self.rect.centerx, self.rect.centery)
 
-        self.rect.centerx += (dx_vect/mag)*vel if (mag>opt) else -(dx_vect/mag)*vel
-        self.rect.centery += (dy_vect/mag)*vel if (mag>opt) else -(dy_vect/mag)*vel
 
+        try:
+            self.rect.centerx += (dx_vect/mag)*vel if (mag>opt) else -(dx_vect/mag)*vel
+            self.rect.centery += (dy_vect/mag)*vel if (mag>opt) else -(dy_vect/mag)*vel
+        except ZeroDivisionError:
+            pass
 
     def is_colliding(self, plant):
         return self.rect.colliderect(plant.rect)
